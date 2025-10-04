@@ -26,7 +26,6 @@ resource "aws_subnet" "public" {
   count             = length(var.public_subnets)
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.public_subnets[count.index]
-  availability_zone = var.azs[count.index]
 
   map_public_ip_on_launch = true
 
@@ -41,7 +40,6 @@ resource "aws_subnet" "private" {
   count             = length(var.private_subnets)
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.private_subnets[count.index]
-  availability_zone = var.azs[count.index]
 
   tags = {
     Name        = "${var.environment}-private-subnet-${count.index + 1}"
@@ -51,7 +49,7 @@ resource "aws_subnet" "private" {
 
 # Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
-  count = length(var.public_subnets)
+  count = var.create_nat ? 1 : 0
   vpc   = true
 
   tags = {
@@ -62,9 +60,10 @@ resource "aws_eip" "nat" {
 
 # NAT Gateway
 resource "aws_nat_gateway" "main" {
-  count         = length(var.public_subnets)
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+  count         = var.create_nat ? 1 : 0
+  allocation_id = aws_eip.nat[0].id
+  # place the NAT in the first public subnet (index 0)
+  subnet_id     = length(aws_subnet.public) > 0 ? aws_subnet.public[0].id : null
 
   tags = {
     Name        = "${var.environment}-nat-${count.index + 1}"
@@ -94,7 +93,9 @@ resource "aws_route_table" "private" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main[count.index].id
+    # Use NAT gateway if created; otherwise, no default route to internet.
+    # Choose the NAT gateway that lives in the same AZ as the private subnet.
+    nat_gateway_id = var.create_nat ? aws_nat_gateway.main[0].id : null
   }
 
   tags = {

@@ -16,6 +16,18 @@ variable "vpc_cidr" {
   default     = "192.168.0.0/16"
 }
 
+variable "bastion_vpc_cidr" {
+  description = "CIDR block for bastion VPC"
+  type        = string
+  default     = "192.168.0.0/16"
+}
+
+variable "app_vpc_cidr" {
+  description = "CIDR block for application VPC"
+  type        = string
+  default     = "172.32.0.0/16"
+}
+
 variable "public_subnets" {
   description = "CIDR blocks for public subnets"
   type        = list(string)
@@ -26,6 +38,30 @@ variable "private_subnets" {
   description = "CIDR blocks for private subnets"
   type        = list(string)
   default     = ["192.168.3.0/24", "192.168.4.0/24"]
+}
+
+# Bastion VPC specific subnets (2 public)
+variable "bastion_public_subnets" {
+  description = "Public subnets for bastion VPC"
+  type        = list(string)
+  default     = ["192.168.10.0/24", "192.168.11.0/24"]
+}
+
+# App VPC: 2 public + 6 private across 2 AZs
+variable "app_public_subnets" {
+  description = "Public subnets for application VPC"
+  type        = list(string)
+  default     = ["172.32.1.0/24", "172.32.2.0/24"]
+}
+
+variable "app_private_subnets" {
+  description = "Private subnets for application VPC (6 subnets: 2 app, 2 web, 2 db)"
+  type        = list(string)
+  default     = [
+    "172.32.10.0/24", "172.32.11.0/24", # app
+    "172.32.20.0/24", "172.32.21.0/24", # web
+    "172.32.30.0/24", "172.32.31.0/24"  # db
+  ]
 }
 
 variable "availability_zones" {

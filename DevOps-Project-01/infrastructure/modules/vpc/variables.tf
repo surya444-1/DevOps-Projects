@@ -22,3 +22,9 @@ variable "azs" {
   description = "List of availability zones"
   type        = list(string)
 } 
+
+variable "create_nat" {
+  description = "Whether to create NAT Gateways for private subnets"
+  type        = bool
+  default     = true
+}

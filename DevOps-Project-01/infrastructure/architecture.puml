@@ -1,0 +1,36 @@
+@startuml
+title Two VPC architecture (Bastion + App)
+
+actor User
+node "Internet" as Internet
+
+cloud "Bastion VPC\n192.168.0.0/16" as BastionVPC {
+  rectangle "Public Subnet 1\n(bastion-1)" as bastion_pub1
+  rectangle "Public Subnet 2\n(bastion-2)" as bastion_pub2
+  rectangle "Internet Gateway (IGW)" as bastion_igw
+}
+
+cloud "App VPC\n172.32.0.0/16" as AppVPC {
+  rectangle "Public Subnet 1\n(public-1)" as app_pub1
+  rectangle "Public Subnet 2\n(public-2)" as app_pub2
+  rectangle "Private Subnet - App (x2)" as app_private_app
+  rectangle "Private Subnet - Web (x2)" as app_private_web
+  rectangle "Private Subnet - DB  (x2)" as app_private_db
+  rectangle "Internet Gateway (IGW)" as app_igw
+  rectangle "NAT Gateway (single)" as app_nat
+}
+
+User --> Internet
+Internet --> bastion_igw
+Internet --> app_igw
+bastion_igw --> bastion_pub1
+bastion_igw --> bastion_pub2
+app_igw --> app_pub1
+app_igw --> app_pub2
+app_nat --> app_pub1
+app_nat --> app_pub2
+app_nat --> app_private_app
+app_nat --> app_private_web
+app_nat --> app_private_db
+
+@enduml
